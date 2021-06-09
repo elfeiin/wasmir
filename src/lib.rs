@@ -9,21 +9,21 @@
 //! Code must be declared inside a module. The typical usage is as follows:
 //! ```
 //! use wasmir::wasmir;
-//! 
+//!
 //! #[wasmir]
 //! mod my_module {
 //!    use wasm_bindgen::prelude::*;
-//!    
-//! 	 #[wasm_bindgen]
-//! 	 extern "C" {
+//!
+//!    #[wasm_bindgen]
+//!    extern "C" {
 //!       pub fn alert(s: &str);
-//! 	 }
-//! 
-//! 	 #[wasm_bindgen]
-//! 	 pub fn greet(name: &str) {
-//! 	    unsafe {
-//! 	  	    alert(&format!("Hello, {}!", name));
-//! 		 }
+//!    }
+//!
+//!    #[wasm_bindgen]
+//!    pub fn greet(name: &str) {
+//!       unsafe {
+//!          alert(&format!("Hello, {}!", name));
+//!       }
 //!    }
 //! }
 //! ```
@@ -37,7 +37,7 @@
 
 use proc_macro::TokenStream;
 use proc_macro2::Ident;
-use proc_macro2::{ Span, TokenStream as TokenStream2, TokenTree};
+use proc_macro2::{Span, TokenStream as TokenStream2, TokenTree};
 use quote::quote;
 use std::env;
 use std::fs::create_dir_all;
@@ -204,9 +204,9 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 	let module_name = Ident::new(module_name.as_str(), Span::call_site());
 
 	quote![
-	   mod #module_name {
-		  const wasm: [u8; #binary_len] = [#(#binary),*];
-		 const js_loader: [u8; #js_len] = [#(#js),*];
+	mod #module_name {
+	  const wasm: [u8; #binary_len] = [#(#binary),*];
+	 const js_loader: [u8; #js_len] = [#(#js),*];
 	  }
 	]
 	.into()
