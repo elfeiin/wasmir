@@ -11,7 +11,7 @@ If your project stops building, please submit an issue.
 Add wasmir as a dependency to your Cargo.toml:
 
 ```toml
-wasmir = "0.1.1"
+wasmir = "0.1.2"
 ```
 
 # Usage
