@@ -1,0 +1,1 @@
+/home/elfein/Projects/wasmir/.wasmir/my_module/target/wasm32-unknown-unknown/release/my_module.wasm: /home/elfein/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.74/build.rs /home/elfein/Projects/wasmir/.wasmir/my_module/src/lib.rs

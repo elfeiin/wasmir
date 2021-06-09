@@ -1,0 +1,10 @@
+[dependencies]
+wasm-bindgen = "*"
+
+[lib]
+crate-type = ["cdylib"]
+
+[package]
+edition = "2018"
+name = "my_module"
+version = "0.1.0"

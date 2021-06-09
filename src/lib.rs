@@ -195,18 +195,16 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 		Err(e) => panic!["could not open js: {}", e],
 	};
 
-	let mut js = vec![];
+	let mut js = String::new();
 
-	file.read_to_end(&mut js).expect("could not read-in js");
-
-	let js_len = js.len();
+	file.read_to_string(&mut js).expect("could not read-in js");
 
 	let module_name = Ident::new(module_name.as_str(), Span::call_site());
 
 	quote![
 	mod #module_name {
 	   pub const wasm: [u8; #binary_len] = [#(#binary),*];
-	   pub const js_loader: [u8; #js_len] = [#(#js),*];
+	   pub const loader: &str = &#js;
    }]
 	.into()
 }
