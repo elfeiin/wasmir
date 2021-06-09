@@ -10,7 +10,7 @@
 //! ```
 //! use wasmir::wasmir;
 //!
-//! #[wasmir]
+//! #[wasmir(CustomDependencies.toml)]
 //! mod my_module {
 //!    use wasm_bindgen::prelude::*;
 //!
