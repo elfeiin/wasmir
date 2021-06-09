@@ -193,7 +193,7 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 		.output()
 	{
 		Ok(o) => {
-			println!["{:#?}", o.stderr];
+			println!["{}", String::from_utf8(o.stderr).unwrap()];
 		}
 		Err(e) => {
 			panic!["could not build: {}", e];
