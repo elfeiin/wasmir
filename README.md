@@ -35,5 +35,15 @@ mod my_module {
 }
 ```
 Once the proc_macro does its work, the above module will then contain two binary blob constants,
-`wasm` and `js_loader`. It is important that `js_loader` is served with your web app (inside index.html) and that the
-wasm binary is served at the correct address of "./my_module_bg.wasm"
+`wasm` and `loader`. Serve loader from "my_module.js" and wasm from "my_module_bg.wasm"
+Then, in index.js, include the following code:
+```js
+import init from './my_module_bg.js';
+import {greet} from './my_module_bg.js';
+
+function run() {
+   greet(\"World\");
+}
+
+init().then(run)
+```
