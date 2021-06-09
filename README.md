@@ -47,3 +47,13 @@ function run() {
 
 init().then(run)
 ```
+You can also specify WASM-dependencies like so:
+```toml
+#[wasmir(
+[dependencies]
+wasm-bindgen = "*"
+[dependencies.web-sys]
+version = "*"
+features = ["Document", "Node", "Element"]
+)]
+```
