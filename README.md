@@ -10,7 +10,7 @@ If your project stops building, please submit an issue.
 # Usage
 Add wasmir as a dependency to your Cargo.toml:
 ```toml
-wasmir = "0.1.7"
+wasmir = "0.1.8"
 ```
 
 Code must be declared inside a module. The typical usage is as follows:
