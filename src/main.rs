@@ -1,7 +1,7 @@
 
 use wasmir::wasmir;
 
-// #[wasmir]
+#[wasmir]
 mod my_module {
    use wasm_bindgen::prelude::*;
    
