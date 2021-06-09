@@ -1,6 +1,6 @@
 //! A library for embedding high-performance WASM code directly in a Rust program.
-//! This package was created for people who absolutely hate writing Jabbascript.
-//! The goal of this library is to reduce the amount of overhead required to write
+//! This package was created for people who absolutely hate writing Javascript.
+//! The goal of this library is to reduce the amount of overhead required to implement
 //! WASM by automatically compiling WASM modules and statically linking them to
 //! the your binary. You will need to have [wasm-bindgen](https://developer.mozilla.org/en-US/docs/WebAssembly/Rust_to_wasm) installed.
 //! If your project stops building, please submit an issue.
@@ -29,7 +29,7 @@
 //! ```
 //! Once the proc_macro does its work, the above module will then contain two binary blob constants,
 //! `wasm` and `js_loader`. It is important that `js_loader` is served with your web app (inside index.html) and that the
-//! wasm binary is served at the correct address of "my_website/my_module_bg.wasm"
+//! wasm binary is served at the correct address of "./my_module_bg.wasm"
 
 // Macro gets applied to module, function, struct, etc.
 // Macro calls compiler with web assembly target on code.
