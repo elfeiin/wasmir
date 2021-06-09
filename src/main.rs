@@ -1,7 +1,10 @@
 
 use wasmir::wasmir;
 
-// #[wasmir("Default.toml")]
+// #[wasmir("
+// [dependencies]
+// wasm-bindgen = \"*\"
+// ")]
 mod my_module {
    use wasm_bindgen::prelude::*;
    

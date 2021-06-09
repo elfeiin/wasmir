@@ -40,6 +40,13 @@
 //!
 //! init().then(run)
 //! ```
+//! You can also specify WASM-dependencies like so:
+//! ```
+//! #[wasmir("
+//! [dependencies]
+//! web-sys = "*"
+//! ")]
+//! ```
 
 // Macro gets applied to module, function, struct, etc.
 // Macro calls compiler with web assembly target on code.
@@ -58,15 +65,28 @@ use std::process::Command;
 use toml::{self, Value};
 
 #[proc_macro_attribute]
-pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
+pub fn wasmir(attr: TokenStream, input: TokenStream) -> TokenStream {
 	let project_root = std::path::PathBuf::from(
 		std::env::var("CARGO_MANIFEST_DIR")
 			.expect("couldn't read CARGO_MANIFEST_DIR environment variable"),
 	);
 	let wasmir_dir = std::path::PathBuf::from(project_root.clone()).join(".wasmir");
 	create_dir_all(wasmir_dir.clone()).expect("couldn't create WASMIR temp directory");
-
 	let input = TokenStream2::from(input);
+
+   let mut dependencies = String::new();
+   
+	for item in input.clone().into_iter() {
+		match item {
+			TokenTree::Literal(literal) => {
+            dependencies = literal.to_string();
+         }
+			_ => {
+				continue;
+			}
+		}
+	}
+   
 	let mut module_name = String::new();
 	let mut module_stream: TokenStream2 = TokenStream2::new();
 
@@ -164,13 +184,8 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 		}
 	}
 
-   let mut file = File::open(project_root.clone().join("Cargo.toml"))
-      .expect("could not open old toml file");
-   let mut buf = String::new();
-   file.read_to_string(&mut buf)
-      .expect("could not read in old toml");
-   let mut new_toml: Value = toml::from_str(&buf).expect("failed to parse old toml");
-   match new_toml.get_mut("dependencies") {
+   let mut dependencies_toml: Value = toml::from_str(&dependencies).expect("failed to parse dependencies toml");
+   match dependencies_toml.get_mut("dependencies") {
       Some(Value::Table(deps)) => {
          if let Some(Value::Table(lib_deps)) = cargo_toml.get_mut("dependencies") {
             lib_deps.extend(deps.iter().map(|(k, v)| (k.clone(), v.clone())));
