@@ -33,11 +33,11 @@
 //! ```js
 //! import init from './my_module_bg.js';
 //! import {greet} from './my_module_bg.js';
-//! 
+//!
 //! function run() {
 //!    greet(\"World\");
 //! }
-//! 
+//!
 //! init().then(run)
 //! ```
 
@@ -58,11 +58,25 @@ use std::process::Command;
 use toml::{self, Value};
 
 #[proc_macro_attribute]
-pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
-	let project_root = std::env::var("CARGO_MANIFEST_DIR")
-		.expect("couldn't read CARGO_MANIFEST_DIR environment variable");
-	let wasmir_dir = std::path::PathBuf::from(project_root).join(".wasmir");
+pub fn wasmir(attr: TokenStream, input: TokenStream) -> TokenStream {
+	let project_root = std::path::PathBuf::from(
+		std::env::var("CARGO_MANIFEST_DIR")
+			.expect("couldn't read CARGO_MANIFEST_DIR environment variable"),
+	);
+	let wasmir_dir = std::path::PathBuf::from(project_root.clone()).join(".wasmir");
 	create_dir_all(wasmir_dir.clone()).expect("couldn't create WASMIR temp directory");
+
+	let attr = TokenStream2::from(attr);
+	let mut new_toml_path = String::new();
+
+	for item in attr.clone().into_iter() {
+		match item {
+			TokenTree::Literal(literal) => {
+				new_toml_path = literal.to_string();
+			}
+			_ => {}
+		}
+	}
 
 	let input = TokenStream2::from(input);
 	let mut module_name = String::new();
@@ -101,7 +115,9 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 		.arg(module_name.clone())
 		.output()
 	{
-		Ok(o) => {println!["{:#?}", o];}
+		Ok(o) => {
+			println!["{:#?}", o];
+		}
 		Err(_) => {}
 	};
 
@@ -144,7 +160,7 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 		}
 	}
 
-	let wasm_bindgen: Value = Value::String("*".to_string());
+	let wasm_bindgen_dep: Value = Value::String("*".to_string());
 
 	match cargo_toml.get_mut("dependencies") {
 		Some(Value::Table(lib)) => {
@@ -153,12 +169,30 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 		_ => {
 			if let Some(table) = cargo_toml.as_table_mut() {
 				let mut map = toml::map::Map::new();
-				map.insert("wasm-bindgen".to_string(), wasm_bindgen);
+				map.insert("wasm-bindgen".to_string(), wasm_bindgen_dep);
 				let map = Value::Table(map);
 				table.insert("dependencies".to_string(), map);
 			}
 		}
 	}
+
+	if new_toml_path != "" {
+		let mut file = File::open(project_root.clone().join(new_toml_path))
+			.expect("could not open new toml file");
+		let mut buf = String::new();
+		file.read_to_string(&mut buf)
+			.expect("could not read in new toml");
+		let mut new_toml: Value = toml::from_str(&buf).expect("failed to parse new toml");
+		match new_toml.get_mut("dependencies") {
+			Some(Value::Table(deps)) => {
+				if let Some(Value::Table(lib_deps)) = cargo_toml.get_mut("dependencies") {
+					lib_deps.extend(deps.iter().map(|(k, v)| (k.clone(), v.clone())));
+				}
+			}
+			_ => {}
+		}
+	}
+
 	let mut file =
 		File::create(module_root.join("Cargo.toml")).expect("failed to write toml/create file");
 	file.write(&format!["{}", cargo_toml].bytes().collect::<Vec<u8>>())
@@ -172,7 +206,9 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 		.arg("web")
 		.output()
 	{
-		Ok(o) => {println!["{:#?}", o];}
+		Ok(o) => {
+			println!["{:#?}", o];
+		}
 		Err(e) => {
 			panic!["could not build: {}", e];
 		}
