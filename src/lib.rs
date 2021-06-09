@@ -96,7 +96,7 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 	};
    
    // attempt to write to lib.rs in module root
-   let mut file = File::open(module_root.join("src").join("lib.rs"))
+   let mut file = File::create(module_root.join("src").join("lib.rs"))
       .expect("could not open lib.rs for editing");
    let buf: Vec<u8> = module_text.as_bytes().iter().map(|b| *b).collect();
    file.write_all(&buf).expect("could not write to lib.rs");
