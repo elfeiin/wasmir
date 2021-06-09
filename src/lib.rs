@@ -92,14 +92,14 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 		.output()
 	{
 		Ok(_) => {}
-		Err(_) => {
-			// attempt to write to lib.rs in module root
-			let mut file = File::open(module_root.join("src").join("lib.rs"))
-				.expect("could not open lib.rs for editing");
-			let buf: Vec<u8> = module_text.as_bytes().iter().map(|b| *b).collect();
-			file.write_all(&buf).expect("could not write to lib.rs");
-		}
+		Err(_) => {}
 	};
+   
+   // attempt to write to lib.rs in module root
+   let mut file = File::open(module_root.join("src").join("lib.rs"))
+      .expect("could not open lib.rs for editing");
+   let buf: Vec<u8> = module_text.as_bytes().iter().map(|b| *b).collect();
+   file.write_all(&buf).expect("could not write to lib.rs");
 
 	// Configure the module
 	let mut buf = String::new();
@@ -205,9 +205,8 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 
 	quote![
 	mod #module_name {
-	  const wasm: [u8; #binary_len] = [#(#binary),*];
-	 const js_loader: [u8; #js_len] = [#(#js),*];
-	  }
-	]
+	   pub const wasm: [u8; #binary_len] = [#(#binary),*];
+	   pub const js_loader: [u8; #js_len] = [#(#js),*];
+   }]
 	.into()
 }
