@@ -1,10 +1,13 @@
-
 use wasmir::wasmir;
+use toml::toml;
 
-// #[wasmir("
-// [dependencies]
-// wasm-bindgen = \"*\"
-// ")]
+#[wasmir(
+[dependencies]
+wasm-bindgen = "*"
+[dependencies.web-sys]
+version = "*"
+features = ["Document", "Node", "Element"]
+)]
 mod my_module {
    use wasm_bindgen::prelude::*;
    

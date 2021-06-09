@@ -1,3 +1,5 @@
+#![feature(string_remove_matches)]
+
 //! A library for embedding high-performance WASM code directly in a Rust program.
 //! This package was created for people who absolutely hate writing Javascript.
 //! The goal of this library is to reduce the amount of overhead required to implement
@@ -41,11 +43,14 @@
 //! init().then(run)
 //! ```
 //! You can also specify WASM-dependencies like so:
-//! ```
-//! #[wasmir("
+//! ```toml
+//! #[wasmir(
 //! [dependencies]
-//! web-sys = "*"
-//! ")]
+//! wasm-bindgen = "*"
+//! [dependencies.web-sys]
+//! version = "*"
+//! features = ["Document", "Node", "Element"]
+//! )]
 //! ```
 
 // Macro gets applied to module, function, struct, etc.
@@ -53,16 +58,67 @@
 // Macro puts the resulting binary in the code.
 
 use proc_macro::TokenStream;
-use proc_macro2::Ident;
-use proc_macro2::{Span, TokenStream as TokenStream2, TokenTree};
+use proc_macro2::{Delimiter, Ident, Span, TokenStream as TokenStream2, TokenTree};
 use quote::quote;
 use std::env;
-use std::fs::create_dir_all;
-use std::fs::File;
-use std::fs::OpenOptions;
+use std::fs::{create_dir_all, File, OpenOptions};
 use std::io::prelude::*;
 use std::process::Command;
-use toml::{self, Value};
+use toml;
+use toml::Value;
+
+fn token_tree_to_toml(tree: TokenTree, prev: &Option<TokenTree>) -> String {
+	let mut buf = String::new();
+	let newline_group = if let Some(TokenTree::Punct(_)) = prev {
+		""
+	} else {
+		"\n"
+	};
+	buf = match tree {
+		TokenTree::Group(group) => match group.delimiter() {
+			Delimiter::Brace => format!["{}{}{{{}}}", newline_group, buf, token_stream_to_toml(group.stream())],
+			Delimiter::Bracket => format!["{}{}[{}]", newline_group, buf, token_stream_to_toml(group.stream())],
+			Delimiter::Parenthesis => {
+				format!["{}{}({})", newline_group, buf, token_stream_to_toml(group.stream())]
+			}
+			Delimiter::None => format!["{}{}{}", newline_group, buf, token_stream_to_toml(group.stream())],
+		},
+		TokenTree::Ident(ident) => {
+			if let Some(TokenTree::Group(_) | TokenTree::Literal(_)) = prev {
+				format!["\n{}{}", buf, ident.to_string()]
+			} else {
+				format!["{}{}", buf, ident.to_string()]
+			}
+		}
+		TokenTree::Literal(literal) => {
+			if let Some(TokenTree::Group(_)) = prev {
+				format!["\n{}{}", buf, literal.to_string()]
+			} else {
+				format!["{}{}", buf, literal.to_string()]
+			}
+		}
+		TokenTree::Punct(punct) => {
+			if let Some(TokenTree::Group(_)) = prev {
+				format!["\n{}{}", buf, punct.to_string()]
+			} else {
+				format!["{}{}", buf, punct.to_string()]
+			}
+		}
+	};
+	buf
+}
+
+fn token_stream_to_toml(tokens: TokenStream2) -> String {
+	let mut buf = String::new();
+	let mut prev = None;
+
+	for token in tokens.into_iter() {
+		buf = format!["{}{}", buf, token_tree_to_toml(token.clone(), &prev)];
+		prev = Some(token);
+	}
+
+	buf
+}
 
 #[proc_macro_attribute]
 pub fn wasmir(attr: TokenStream, input: TokenStream) -> TokenStream {
@@ -72,21 +128,12 @@ pub fn wasmir(attr: TokenStream, input: TokenStream) -> TokenStream {
 	);
 	let wasmir_dir = std::path::PathBuf::from(project_root.clone()).join(".wasmir");
 	create_dir_all(wasmir_dir.clone()).expect("couldn't create WASMIR temp directory");
-	let input = TokenStream2::from(input);
 
-   let mut dependencies = String::new();
-   
-	for item in input.clone().into_iter() {
-		match item {
-			TokenTree::Literal(literal) => {
-            dependencies = literal.to_string();
-         }
-			_ => {
-				continue;
-			}
-		}
-	}
-   
+	let attr = TokenStream2::from(attr);
+	let dependencies = token_stream_to_toml(attr);
+	println!["{}", dependencies];
+
+	let input = TokenStream2::from(input);
 	let mut module_name = String::new();
 	let mut module_stream: TokenStream2 = TokenStream2::new();
 
@@ -184,15 +231,16 @@ pub fn wasmir(attr: TokenStream, input: TokenStream) -> TokenStream {
 		}
 	}
 
-   let mut dependencies_toml: Value = toml::from_str(&dependencies).expect("failed to parse dependencies toml");
-   match dependencies_toml.get_mut("dependencies") {
-      Some(Value::Table(deps)) => {
-         if let Some(Value::Table(lib_deps)) = cargo_toml.get_mut("dependencies") {
-            lib_deps.extend(deps.iter().map(|(k, v)| (k.clone(), v.clone())));
-         }
-      }
-      _ => {}
-   }
+	let mut dependencies_toml: Value =
+		toml::from_str(&dependencies).expect("failed to parse dependencies toml");
+	match dependencies_toml.get_mut("dependencies") {
+		Some(Value::Table(deps)) => {
+			if let Some(Value::Table(lib_deps)) = cargo_toml.get_mut("dependencies") {
+				lib_deps.extend(deps.iter().map(|(k, v)| (k.clone(), v.clone())));
+			}
+		}
+		_ => {}
+	}
 
 	let mut file =
 		File::create(module_root.join("Cargo.toml")).expect("failed to write toml/create file");
