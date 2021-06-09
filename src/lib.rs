@@ -2,7 +2,7 @@
 //! This package was created for people who absolutely hate writing Javascript.
 //! The goal of this library is to reduce the amount of overhead required to implement
 //! WASM by automatically compiling WASM modules and statically linking them to
-//! the your binary. You will need to have [wasm-bindgen](https://developer.mozilla.org/en-US/docs/WebAssembly/Rust_to_wasm) installed.
+//! your binary. You will need to have [wasm-bindgen](https://developer.mozilla.org/en-US/docs/WebAssembly/Rust_to_wasm) installed.
 //! If your project stops building, please submit an issue.
 
 //! # Usage
