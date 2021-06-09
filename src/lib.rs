@@ -10,7 +10,7 @@
 //! ```
 //! use wasmir::wasmir;
 //!
-//! #[wasmir(CustomDependencies.toml)]
+//! #[wasmir]
 //! mod my_module {
 //!    use wasm_bindgen::prelude::*;
 //!
@@ -104,7 +104,7 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 		.output()
 	{
 		Ok(o) => {
-			println!["{:#?}", o];
+			println!["{:#?}", o.stderr];
 		}
 		Err(_) => {}
 	};
@@ -193,7 +193,7 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 		.output()
 	{
 		Ok(o) => {
-			println!["{:#?}", o];
+			println!["{:#?}", o.stderr];
 		}
 		Err(e) => {
 			panic!["could not build: {}", e];
