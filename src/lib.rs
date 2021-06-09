@@ -101,7 +101,7 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 		.arg(module_name.clone())
 		.output()
 	{
-		Ok(_) => {}
+		Ok(o) => {println!["{:#?}", o];}
 		Err(_) => {}
 	};
 
@@ -172,7 +172,7 @@ pub fn wasmir(_attr: TokenStream, input: TokenStream) -> TokenStream {
 		.arg("web")
 		.output()
 	{
-		Ok(_) => {}
+		Ok(o) => {println!["{:#?}", o];}
 		Err(e) => {
 			panic!["could not build: {}", e];
 		}
