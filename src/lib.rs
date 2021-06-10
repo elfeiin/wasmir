@@ -76,12 +76,32 @@ fn token_tree_to_toml(tree: TokenTree, prev: &Option<TokenTree>) -> String {
 	};
 	buf = match tree {
 		TokenTree::Group(group) => match group.delimiter() {
-			Delimiter::Brace => format!["{}{}{{{}}}", newline_group, buf, token_stream_to_toml(group.stream())],
-			Delimiter::Bracket => format!["{}{}[{}]", newline_group, buf, token_stream_to_toml(group.stream())],
+			Delimiter::Brace => format![
+				"{}{}{{{}}}",
+				newline_group,
+				buf,
+				token_stream_to_toml(group.stream())
+			],
+			Delimiter::Bracket => format![
+				"{}{}[{}]",
+				newline_group,
+				buf,
+				token_stream_to_toml(group.stream())
+			],
 			Delimiter::Parenthesis => {
-				format!["{}{}({})", newline_group, buf, token_stream_to_toml(group.stream())]
+				format![
+					"{}{}({})",
+					newline_group,
+					buf,
+					token_stream_to_toml(group.stream())
+				]
 			}
-			Delimiter::None => format!["{}{}{}", newline_group, buf, token_stream_to_toml(group.stream())],
+			Delimiter::None => format![
+				"{}{}{}",
+				newline_group,
+				buf,
+				token_stream_to_toml(group.stream())
+			],
 		},
 		TokenTree::Ident(ident) => {
 			if let Some(TokenTree::Group(_) | TokenTree::Literal(_)) = prev {
@@ -296,6 +316,7 @@ pub fn wasmir(attr: TokenStream, input: TokenStream) -> TokenStream {
 
 	quote![
 	 mod #module_name {
+	   #input
 		pub const wasm: [u8; #binary_len] = [#(#binary),*];
 		pub const loader: &str = #js;
 	}]
